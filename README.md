@@ -1,7 +1,9 @@
 AV_Tracker
 ==========
 
-Manually track and store, in a Database, AV detections on your network.
+Manually track and store, in a Database, AV detections on your network. 
+----------
+Using Python 2.7.5 and PyQT4
 ----------
 
 1.AV Summary Entry
