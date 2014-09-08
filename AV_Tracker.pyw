@@ -4,9 +4,9 @@ from Dialogs.dialog import *
 from Dialogs.AV_Summary import *
 from PyQt4 import QtSql, QtGui
 from datetime import datetime, date
-import os.path, time
 import csv
 import sqlite3
+
 
 def createConnection():
     """Creates connection to the database."""
@@ -33,7 +33,7 @@ class MyForm(QtGui.QMainWindow):
         self.model.setSort(3, 1)
         #Sets edit strategy to On Field change
         self.model.setEditStrategy(0)
-        self.model.select()        
+        self.model.select()
         self.ui.tableView.setModel(self.model)
         #Calls a function based on the button or menu triggered
         self.ui.Save_Button.clicked.connect(self.dbinput)
@@ -80,17 +80,18 @@ class MyForm(QtGui.QMainWindow):
 
     def mapindex(self):
         """Function called to pull a row from
-            the table back to the line edits 
+            the table back to the line edits
             and drop selections"""
         devices = ['Desktop', 'Laptop', 'Server']
-        actions = ['On Access Deleted', 'On Access Cleaned', 'Managed Scan Deleted', \
+        actions = ['On Access Deleted', 'On Access Cleaned',
+                   'Managed Scan Deleted',
                    'Managed Scan Cleaned', 'Script Scan Blocked', 'Other']
         # Promts the user to input the row to update
-        i, ok = QtGui.QInputDialog.getInteger(self,
-                "Update Row", "Row:", 1, 1, 1000, 1)
+        i, ok = QtGui.QInputDialog.getInteger(
+            self, "Update Row", "Row:", 1, 1, 1000, 1)
         row = "%d" % i
         row = int(row) - 1
-        if ok: 
+        if ok:
             self.ui.Save_Button.hide()
             self.ui.Update_Button.show()
             self.ui.lineEditdaterec.show()
@@ -156,15 +157,15 @@ class MyForm(QtGui.QMainWindow):
             self.ui.lineEditdaterec.hide()
             self.ui.lineEditdategen.hide()
         else:
-            ok = QtGui.QMessageBox.warning(self, 'Warning',
-                     "Dates cannot be left blank",)
-
+            w, ok = QtGui.QMessageBox.warning(
+                self, 'Warning', "Dates cannot be left blank",)
 
     def clearsearch(self):
         """Clears the search from the database view"""
         self.ui.lineEditSearch.clear()
-        self.model.setFilter("" + self.ui.comboFilter.currentText() +
-        " like '" + self.ui.lineEditSearch.text() + "%'")
+        self.model.setFilter(
+            "" + self.ui.comboFilter.currentText()
+               + " like '" + self.ui.lineEditSearch.text() + "%'")
 
     def clearform(self):
         """Function to clear the line edits of text"""
@@ -185,16 +186,17 @@ class MyForm(QtGui.QMainWindow):
 
     def deletrow(self):
         """Function called to delete a row from the tableview and database"""
-        i, ok = QtGui.QInputDialog.getInteger(self,
-                "Delete Row", "Row:", 1, 1, 100, 1)
+        i, ok = QtGui.QInputDialog.getInteger(
+            self, "Delete Row", "Row:", 1, 1, 100, 1)
         rowid = "%d" % i
         row = "%d" % i
         row = int(row) - 1
         if ok:
-            yes = QtGui.QMessageBox.question(self, 'Message',
-                     """You are about to delete row %s from the database.
+            yes = QtGui.QMessageBox.question(
+                self, 'Message',
+                """You are about to delete row %s from the database.
               Are you sure you want to continue?""" % rowid,
-               QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if yes == QtGui.QMessageBox.Yes:
                 self.model.removeRow(row)
 
@@ -247,8 +249,9 @@ class MyForm(QtGui.QMainWindow):
 
     def dbfilter(self):
         """The function to filter the database view based on user input """
-        self.model.setFilter("" + self.ui.comboFilter.currentText() +
-        " like '" + self.ui.lineEditSearch.text() + "%'")
+        self.model.setFilter(
+            "" + self.ui.comboFilter.currentText() +
+            " like '" + self.ui.lineEditSearch.text() + "%'")
 
     def dbrefresh(self):
         """Function to refresh the database view."""
@@ -268,9 +271,10 @@ class MyForm(QtGui.QMainWindow):
     def dbexall(self):
         """Function to export the entire database to csv file format."""
         now = datetime.now()
-        folder = QtGui.QFileDialog.getSaveFileName(None, str("Save File"),
-             str("AV_OUTPUT_DATABASE_%s.csv" % now.strftime('%m%d%Y')),
-              str("CSV(*.csv)"))
+        folder = QtGui.QFileDialog.getSaveFileName(
+            None, str("Save File"), str(
+                "AV_OUTPUT_DATABASE_%s.csv" % now.strftime('%m%d%Y')),
+            str("CSV(*.csv)"))
         conn = sqlite3.connect("AV_sum.db")
         cursor = conn.cursor()
         cursor.execute("SELECT * from AV ORDER BY date_rec DESC;")
@@ -285,17 +289,18 @@ class MyForm(QtGui.QMainWindow):
         """Function to export from the database
          based on the hostname to csv file format."""
         now = datetime.now()
-        text, ok = QtGui.QInputDialog.getText(self,
-                "Export By Hostname", "Hostname:", QtGui.QLineEdit.Normal)
+        text, ok = QtGui.QInputDialog.getText(
+            self, "Export By Hostname", "Hostname:", QtGui.QLineEdit.Normal)
         if ok and text != '':
             text = str(text)
-            folder = QtGui.QFileDialog.getSaveFileName(None, str("Save File"),
-            str("AV_OUTPUT_%s_%s.csv" % (text, now.strftime('%m%d%Y'))),
-                  str("CSV(*.csv)"))
+            folder = QtGui.QFileDialog.getSaveFileName(
+                None, str("Save File"),
+                str("AV_OUTPUT_%s_%s.csv" % (text, now.strftime('%m%d%Y'))),
+                str("CSV(*.csv)"))
             conn = sqlite3.connect("AV_sum.db")
             cursor = conn.cursor()
-            cursor.execute("SELECT * from AV WHERE hostname LIKE '"
-            + text + "%'")
+            cursor.execute(
+                "SELECT * from AV WHERE hostname LIKE '" + text + "%'")
             csv_writer = csv.writer(open(folder, "wb"))
             csv_writer.writerow([i[0] for i in cursor.description])
             # write headers
@@ -306,21 +311,22 @@ class MyForm(QtGui.QMainWindow):
     def Userdbex(self):
         """Function to export from the database
          based on the username to csv file format."""
-        text, ok = QtGui.QInputDialog.getText(self,
-                "Export By Username", """Wildcard = %
+        text, ok = QtGui.QInputDialog.getText(
+            self, "Export By Username", """Wildcard = %
 EXAMPLE %smith.
 
 Username:""", QtGui.QLineEdit.Normal)
         if ok and text != '':
             text = str(text)
             now = datetime.now()
-            folder = QtGui.QFileDialog.getSaveFileName(None, str("Save File"),
-            str("AV_OUTPUT_%s_%s.csv" % (text, now.strftime('%m%d%Y'))),
-                  str("CSV(*.csv)"))
+            folder = QtGui.QFileDialog.getSaveFileName(
+                None, str("Save File"),
+                str("AV_OUTPUT_%s_%s.csv" % (text, now.strftime('%m%d%Y'))),
+                str("CSV(*.csv)"))
             conn = sqlite3.connect("AV_sum.db")
             cursor = conn.cursor()
-            cursor.execute("SELECT * from AV WHERE username LIKE '"
-             + text + "%'")
+            cursor.execute(
+                "SELECT * from AV WHERE username LIKE '" + text + "%'")
             csv_writer = csv.writer(open(folder, "wb"))
             csv_writer.writerow([i[0] for i in cursor.description])
             # write headers
@@ -339,7 +345,7 @@ class Ui_AV_Summary(QtGui.QDialog, Ui_AV_Summary):
         self.avsumprep.clicked.connect(self.avsummarydialog)
         self.Startdateedit.setDate(date.today())
         self.Enddateedit.setDate(date.today())
-        
+
     def avsummarydialog(self):
         """Function to export from the database
          based on dates to produce an AV summary."""
@@ -348,12 +354,13 @@ class Ui_AV_Summary(QtGui.QDialog, Ui_AV_Summary):
         enddate = self.Enddateedit.date()
         startdate1 = str(startdate.toPyDate().strftime('%m/%d/%y'))
         enddate1 = str(enddate.toPyDate().strftime('%m/%d/%y'))
-        folder = QtGui.QFileDialog.getSaveFileName(None, str("Save File"),
-            str("AV Summary.txt"), str("TXT(*.txt)"))
+        folder = QtGui.QFileDialog.getSaveFileName(
+            None, str("Save File"), str("AV Summary.txt"), str("TXT(*.txt)"))
         conn = sqlite3.connect("AV_sum.db")
         cursor = conn.cursor()
-        cursor.execute("SELECT * from AV WHERE date_rec BETWEEN '"
-        + startdate1 + "' and '" + enddate1 + "%'")
+        cursor.execute(
+            "SELECT * from AV WHERE date_rec BETWEEN '" +
+            startdate1 + "' and '" + enddate1 + "%'")
         r = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
         results = []
@@ -381,9 +388,12 @@ COMMENTS:
 
 
 """
-% (x['hostname'], x['device_type'], x['ip_address'], x['username'],
-     x['detection'], x['date_rec'], x['date_gen'], x['action'], 
-     x['filepath'], x['logs'], x['dat_version'],x['comments']))
+                        % (x['hostname'], x['device_type'],
+                            x['ip_address'], x['username'],
+                            x['detection'], x['date_rec'],
+                            x['date_gen'], x['action'],
+                            x['filepath'], x['logs'],
+                            x['dat_version'], x['comments']))
                 continue
                 f.close()
             self.done(0)
@@ -398,7 +408,7 @@ class Dialog(QtGui.QDialog, Ui_Dialog):
         self.setupUi(self)
         self.pushExport.clicked.connect(self.exportdb)
         self.dateEdit.setDate(date.today())
-        
+
     def exportdb(self):
         """Function to export from the database
         based on the date to csv file format."""
@@ -406,13 +416,13 @@ class Dialog(QtGui.QDialog, Ui_Dialog):
         datedb = str(datedb.toPyDate().strftime('%m%d%Y'))
         datedb2 = self.dateEdit.date()
         datedb2 = str(datedb2.toPyDate().strftime('%m/%d/%y'))
-        folder = QtGui.QFileDialog.getSaveFileName(None,
-        str("Save File"), str("AV_OUTPUT_DATE_%s.csv" % datedb),
-              str("CSV(*.csv)"))
+        folder = QtGui.QFileDialog.getSaveFileName(
+            None, str("Save File"), str(
+                "AV_OUTPUT_DATE_%s.csv" % datedb), str("CSV(*.csv)"))
         conn = sqlite3.connect("AV_sum.db")
         cursor = conn.cursor()
-        cursor.execute("SELECT * from AV WHERE date_rec LIKE '"
-         + datedb2 + "%'")
+        cursor.execute(
+            "SELECT * from AV WHERE date_rec LIKE '" + datedb2 + "%'")
         csv_writer = csv.writer(open(folder, "wb"))
         csv_writer.writerow([i[0] for i in cursor.description])
         # write headers
