@@ -2,7 +2,9 @@ import sys
 from Dialogs.AV_sum import *
 from Dialogs.dialog import *
 from Dialogs.AV_Summary import *
-from PyQt4 import QtSql, QtGui
+from PySide6.QtWidgets import *
+import PySide6.QtSql as QtSql
+from PySide6.QtCore import Qt
 from datetime import datetime, date
 import csv
 import sqlite3
@@ -15,24 +17,24 @@ def createConnection():
     if db.open():
         return True
     else:
-        print db.lastError().text()
+        print(db.lastError().text())
         return False
 
 
-class MyForm(QtGui.QMainWindow):
+class MyForm(QMainWindow):
     """Class for the Main Window GUI."""
     def __init__(self, parent=None):
         """The Initialization of the class."""
-        QtGui.QMainWindow.__init__(self, parent)
+        QMainWindow.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         #Sets up the Table View for the database
         self.model = QtSql.QSqlTableModel(self)
         self.model.setTable("AV")
         #Sorts by column then by direction
-        self.model.setSort(3, 1)
+        self.model.setSort(3, Qt.AscendingOrder)
         #Sets edit strategy to On Field change
-        self.model.setEditStrategy(0)
+        self.model.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)
         self.model.select()
         self.ui.tableView.setModel(self.model)
         #Calls a function based on the button or menu triggered
@@ -54,8 +56,8 @@ class MyForm(QtGui.QMainWindow):
         #Syle and look of the application
         app.setStyle("plastique")
         #Maps all the Fields to a column
-        self.mapper = QtGui.QDataWidgetMapper(self)
-        self.mapper.setSubmitPolicy(1)
+        self.mapper = QDataWidgetMapper(self)
+        self.mapper.setSubmitPolicy(QDataWidgetMapper.AutoSubmit)
         self.mapper.setModel(self.model)
         self.mapper.addMapping(self.ui.Hostname_Input, 0)
         self.mapper.addMapping(self.ui.lineEditLogs, 10)
@@ -87,7 +89,7 @@ class MyForm(QtGui.QMainWindow):
                    'Managed Scan Deleted',
                    'Managed Scan Cleaned', 'Script Scan Blocked', 'Other']
         # Promts the user to input the row to update
-        i, ok = QtGui.QInputDialog.getInteger(
+        i, ok = QInputDialog.getInteger(
             self, "Update Row", "Row:", 1, 1, 1000, 1)
         row = "%d" % i
         row = int(row) - 1
@@ -157,7 +159,7 @@ class MyForm(QtGui.QMainWindow):
             self.ui.lineEditdaterec.hide()
             self.ui.lineEditdategen.hide()
         else:
-            w, ok = QtGui.QMessageBox.warning(
+            w, ok = QMessageBox.warning(
                 self, 'Warning', "Dates cannot be left blank",)
 
     def clearsearch(self):
@@ -186,18 +188,18 @@ class MyForm(QtGui.QMainWindow):
 
     def deletrow(self):
         """Function called to delete a row from the tableview and database"""
-        i, ok = QtGui.QInputDialog.getInteger(
+        i, ok = QInputDialog.getInteger(
             self, "Delete Row", "Row:", 1, 1, 100, 1)
         rowid = "%d" % i
         row = "%d" % i
         row = int(row) - 1
         if ok:
-            yes = QtGui.QMessageBox.question(
+            yes = QMessageBox.question(
                 self, 'Message',
                 """You are about to delete row %s from the database.
               Are you sure you want to continue?""" % rowid,
-                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            if yes == QtGui.QMessageBox.Yes:
+                QMessageBox.Yes, QMessageBox.No)
+            if yes == QMessageBox.Yes:
                 self.model.removeRow(row)
 
     def dbinput(self):
@@ -271,7 +273,7 @@ class MyForm(QtGui.QMainWindow):
     def dbexall(self):
         """Function to export the entire database to csv file format."""
         now = datetime.now()
-        folder = QtGui.QFileDialog.getSaveFileName(
+        folder = QFileDialog.getSaveFileName(
             None, str("Save File"), str(
                 "AV_OUTPUT_DATABASE_%s.csv" % now.strftime('%m%d%Y')),
             str("CSV(*.csv)"))
@@ -289,11 +291,11 @@ class MyForm(QtGui.QMainWindow):
         """Function to export from the database
          based on the hostname to csv file format."""
         now = datetime.now()
-        text, ok = QtGui.QInputDialog.getText(
-            self, "Export By Hostname", "Hostname:", QtGui.QLineEdit.Normal)
+        text, ok = QInputDialog.getText(
+            self, "Export By Hostname", "Hostname:", QLineEdit.Normal)
         if ok and text != '':
             text = str(text)
-            folder = QtGui.QFileDialog.getSaveFileName(
+            folder = QFileDialog.getSaveFileName(
                 None, str("Save File"),
                 str("AV_OUTPUT_%s_%s.csv" % (text, now.strftime('%m%d%Y'))),
                 str("CSV(*.csv)"))
@@ -311,15 +313,15 @@ class MyForm(QtGui.QMainWindow):
     def Userdbex(self):
         """Function to export from the database
          based on the username to csv file format."""
-        text, ok = QtGui.QInputDialog.getText(
+        text, ok = QInputDialog.getText(
             self, "Export By Username", """Wildcard = %
 EXAMPLE %smith.
 
-Username:""", QtGui.QLineEdit.Normal)
+Username:""", QLineEdit.Normal)
         if ok and text != '':
             text = str(text)
             now = datetime.now()
-            folder = QtGui.QFileDialog.getSaveFileName(
+            folder = QFileDialog.getSaveFileName(
                 None, str("Save File"),
                 str("AV_OUTPUT_%s_%s.csv" % (text, now.strftime('%m%d%Y'))),
                 str("CSV(*.csv)"))
@@ -335,12 +337,12 @@ Username:""", QtGui.QLineEdit.Normal)
             # this will close the CSV file
 
 
-class Ui_AV_Summary(QtGui.QDialog, Ui_AV_Summary):
+class Ui_AV_Summary(QDialog, Ui_AV_Summary):
     """Class for the Dialog window for the
     options to export the database based on date given."""
     def __init__(self):
         """The Initialization of the Dialog window."""
-        QtGui.QMainWindow.__init__(self)
+        QMainWindow.__init__(self)
         self.setupUi(self)
         self.avsumprep.clicked.connect(self.avsummarydialog)
         self.Startdateedit.setDate(date.today())
@@ -354,7 +356,7 @@ class Ui_AV_Summary(QtGui.QDialog, Ui_AV_Summary):
         enddate = self.Enddateedit.date()
         startdate1 = str(startdate.toPyDate().strftime('%m/%d/%y'))
         enddate1 = str(enddate.toPyDate().strftime('%m/%d/%y'))
-        folder = QtGui.QFileDialog.getSaveFileName(
+        folder = QFileDialog.getSaveFileName(
             None, str("Save File"), str("AV Summary.txt"), str("TXT(*.txt)"))
         conn = sqlite3.connect("AV_sum.db")
         cursor = conn.cursor()
@@ -399,12 +401,12 @@ COMMENTS:
             self.done(0)
 
 
-class Dialog(QtGui.QDialog, Ui_Dialog):
+class Dialog(QDialog, Ui_Dialog):
     """Class for the Dialog window for the
     options to export the database based on date given."""
     def __init__(self):
         """The Initialization of the Dialog window."""
-        QtGui.QMainWindow.__init__(self)
+        QMainWindow.__init__(self)
         self.setupUi(self)
         self.pushExport.clicked.connect(self.exportdb)
         self.dateEdit.setDate(date.today())
@@ -416,7 +418,7 @@ class Dialog(QtGui.QDialog, Ui_Dialog):
         datedb = str(datedb.toPyDate().strftime('%m%d%Y'))
         datedb2 = self.dateEdit.date()
         datedb2 = str(datedb2.toPyDate().strftime('%m/%d/%y'))
-        folder = QtGui.QFileDialog.getSaveFileName(
+        folder = QFileDialog.getSaveFileName(
             None, str("Save File"), str(
                 "AV_OUTPUT_DATE_%s.csv" % datedb), str("CSV(*.csv)"))
         conn = sqlite3.connect("AV_sum.db")
@@ -432,7 +434,7 @@ class Dialog(QtGui.QDialog, Ui_Dialog):
         self.done(0)
 
 if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     if not createConnection():
         sys.exit(1)
     myapp = MyForm()
